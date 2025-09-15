@@ -170,12 +170,11 @@ void lcd_init() {
     // Memory Access Control
     // Invert X and Y memory access order, so upper-left of
     // screen is (0,0) when writing to display.
-    io.lcd_data_write_command_and_data(0x36, {
-                                                 (1 << 7) |  // MY=1
-                                                 (1 << 6) |  // MX=1
-                                                 (0 << 5) |  // MV=0
-                                                 (1 << 4) |  // ML=1: reverse vertical refresh to simplify scrolling logic
-                                                 (1 << 3)    // BGR=1: For Kingtech LCD, BGR filter.
+    // 90° CW: MX|MV|BGR = 0x68
+    io.lcd_data_write_command_and_data(0x36, { 
+                                                (1 << 6) |  // MX=1
+                                                (1 << 5) |  // MV=1 (swapea filas/columnas)
+                                                (1 << 3)    // BGR=1
                                              });
 
     // COLMOD: Pixel Format Set
