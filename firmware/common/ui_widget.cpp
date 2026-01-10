@@ -534,7 +534,7 @@ void BigFrequency::paint(Painter& painter) {
         _previous_frequency = _frequency;
 
         rf::Frequency frequency{_frequency};
-        const auto rect = screen_rect();
+        const auto rect = screen_rect();  // why not use screen_rect() directly for width, ...? it may be too small, but ...
 
         // Erase
         painter.fill_rectangle(
@@ -544,7 +544,7 @@ void BigFrequency::paint(Painter& painter) {
         // Prepare digits
         if (!frequency) {
             digits.fill(10);  // ----.---
-            digit_pos = {0, rect.location().y()};
+            digit_pos = {(screen_width - ((7 * digit_width) + 8)) / 2, rect.location().y()};
         } else {
             frequency /= 1000;  // GMMM.KKK(uuu)
 
@@ -561,7 +561,7 @@ void BigFrequency::paint(Painter& painter) {
                     break;
             }
 
-            digit_pos = {(Coord)(240 - ((7 * digit_width) + 8) - (i * digit_width)) / 2, rect.location().y()};
+            digit_pos = {(Coord)(screen_width - ((7 * digit_width) + 8) - (i * digit_width)) / 2, rect.location().y()};
         }
 
         segment_color = style().foreground;
@@ -1334,24 +1334,66 @@ void NewButton::paint(Painter& painter) {
         style.background);
 
     int y = r.top();
-    if (bitmap_) {
-        int offset_y = vertical_center_ ? (r.height() / 2) - (bitmap_->size.height() / 2) : 6;
-        Point bmp_pos = {r.left() + (r.width() / 2) - (bitmap_->size.width() / 2), r.top() + offset_y};
-        y += bitmap_->size.height() - offset_y;
+    if (vertical_center_) {
+        const int bmp_h = bitmap_ ? bitmap_->size.height() : 0;
+        const int txt_h = !text_.empty() ? style.font.line_height() : 0;
+        int spacing = 0;
+        if (bmp_h > 0 && txt_h > 0) {
+            const int content_height = bmp_h + txt_h;
+            const int remaining_space = r.height() - content_height;
+            spacing = std::max(4, remaining_space / 3);
+        }
+        const int total_height = bmp_h + txt_h + spacing;
+        y += (r.height() - total_height) / 2;
 
-        painter.draw_bitmap(
-            bmp_pos,
-            *bitmap_,
-            color_,
-            style.background);
-    }
+        if (bitmap_) {
+            Point bmp_pos = {r.left() + (r.width() / 2) - (bitmap_->size.width() / 2), y};
+            y += bitmap_->size.height();
 
-    if (!text_.empty()) {
-        const auto label_r = style.font.size_of(text_);
-        painter.draw_string(
-            {r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2},
-            style,
-            text_);
+            painter.draw_bitmap(
+                bmp_pos,
+                *bitmap_,
+                color_,
+                style.background);
+        }
+
+        if (!text_.empty()) {
+            auto label_r = style.font.size_of(text_);
+            std::string text_to_draw = text_;
+            if (label_r.width() > r.width() - 2) {
+                // Truncate text to fit
+                size_t max_chars = (r.width() - 2) / style.font.char_width();
+                text_to_draw = text_.substr(0, max_chars);
+                label_r = style.font.size_of(text_to_draw);
+            }
+            if (bitmap_) {
+                y += spacing;
+            }
+            painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y}, style, text_to_draw);
+        }
+    } else {  // no valign
+        if (bitmap_) {
+            Point bmp_pos = {r.left() + (r.width() / 2) - (bitmap_->size.width() / 2), r.top() + 6};
+            y += bitmap_->size.height() - 6;
+            painter.draw_bitmap(
+                bmp_pos,
+                *bitmap_,
+                color_,
+                style.background);
+        }
+
+        if (!text_.empty()) {
+            auto label_r = style.font.size_of(text_);
+            std::string text_to_draw = text_;
+            if (label_r.width() > r.width() - 2) {
+                // Truncate text to fit
+                size_t max_chars = (r.width() - 2) / style.font.char_width();
+                text_to_draw = text_.substr(0, max_chars);
+                label_r = style.font.size_of(text_to_draw);
+            }
+            painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2}, style,
+                                text_to_draw);
+        }
     }
 }
 
@@ -1699,6 +1741,14 @@ bool ImageOptionsField::on_keyboard(const KeyboardEvent key) {
     return false;
 }
 
+bool ImageOptionsField::on_key(const KeyEvent event) {
+    if (event == KeyEvent::Select) {
+        on_encoder(1);
+        return true;
+    }
+    return false;
+}
+
 bool ImageOptionsField::on_touch(const TouchEvent event) {
     if (event.type == TouchEvent::Type::Start) {
         focus();
@@ -1845,6 +1895,14 @@ bool OptionsField::on_encoder(const EncoderEvent delta) {
 bool OptionsField::on_keyboard(const KeyboardEvent key) {
     if (key == '+' || key == ' ' || key == 10) return on_encoder(1);
     if (key == '-' || key == 8) return on_encoder(-1);
+    return false;
+}
+
+bool OptionsField::on_key(const KeyEvent event) {
+    if (event == KeyEvent::Select) {
+        on_encoder(1);
+        return true;
+    }
     return false;
 }
 
@@ -2134,12 +2192,14 @@ void BatteryIcon::paint(Painter& painter) {
     int8_t ptd = (int8_t)((static_cast<float>(percent_) / 100.0f) * (float)ppx + 0.5);  // pixels to draw
     int8_t pp = ppx - ptd;                                                              // pixels to start from
 
-    if (percent_ >= 70)
-        battColor = Theme::getInstance()->fg_green->foreground;
-    else if (percent_ >= 40)
-        battColor = Theme::getInstance()->fg_orange->foreground;
-    else
-        battColor = Theme::getInstance()->fg_red->foreground;
+    if (!charge_) {
+        if (percent_ >= 70)
+            battColor = Theme::getInstance()->fg_green->foreground;
+        else if (percent_ >= 40)
+            battColor = Theme::getInstance()->fg_orange->foreground;
+        else
+            battColor = Theme::getInstance()->fg_red->foreground;
+    }
     // fill the bars
     for (int y = pp; y < ppx; y++) {
         painter.draw_hline({rect.left() + 2, rect.top() + 3 + y}, rect.width() - 4, battColor);
@@ -2278,6 +2338,8 @@ bool NumberField::on_key(const KeyEvent key) {
         if (on_select) {
             on_select(*this);
             return true;
+        } else {
+            return on_encoder(1);
         }
     }
 
@@ -2719,6 +2781,13 @@ bool Waveform::on_touch(const TouchEvent event) {
 
         default:
             return false;
+    }
+}
+
+void Waveform::set_data(int16_t* new_data) {
+    if (new_data != data_) {
+        data_ = new_data;
+        set_dirty();
     }
 }
 

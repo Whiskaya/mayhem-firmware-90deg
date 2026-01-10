@@ -31,7 +31,9 @@ void initialize(const standalone_application_api_t& api) {
     _api = &api;
 
     context = new ui::Context();
-    standaloneViewMirror = new StandaloneViewMirror(*context, {0, 16, 240, 304});
+    screen_height = *(_api->screen_height);
+    screen_width = *(_api->screen_width);
+    standaloneViewMirror = new StandaloneViewMirror(*context, {0, 16, screen_width, screen_height - 16});
 }
 
 // event 1 == frame sync. called each 1/60th of second, so 6 = 100ms
@@ -75,10 +77,10 @@ ui::Widget* touch_widget(ui::Widget* const w, ui::TouchEvent event) {
 
 ui::Widget* captured_widget{nullptr};
 
-void OnTouchEvent(int, int, uint32_t) {
+bool OnTouchEvent(int, int, uint32_t) {
     if (standaloneViewMirror) {
         _api->exit_app();
-        /*
+        /* //left here for example, but not used in digital rain
         ui::TouchEvent event{{x, y}, static_cast<ui::TouchEvent::Type>(type)};
 
         if (event.type == ui::TouchEvent::Type::Start) {
@@ -94,6 +96,7 @@ void OnTouchEvent(int, int, uint32_t) {
             captured_widget->on_touch(event);
             */
     }
+    return false;
 }
 
 void OnFocus() {
@@ -105,7 +108,8 @@ bool OnKeyEvent(uint8_t) {
     // ui::KeyEvent key = (ui::KeyEvent)key_val;
     if (context) {
         _api->exit_app();
-        /* auto focus_widget = context->focus_manager().focus_widget();
+        /* left here for example, but not used in digital rain
+        auto focus_widget = context->focus_manager().focus_widget();
 
          if (focus_widget) {
              if (focus_widget->on_key(key))
@@ -130,6 +134,7 @@ bool OnEncoder(int32_t) {
     if (context) {
         _api->exit_app();
         /*
+        left here for example, but not used in digital rain
         auto focus_widget = context->focus_manager().focus_widget();
 
         if (focus_widget) return focus_widget->on_encoder((ui::EncoderEvent)delta);
@@ -143,6 +148,7 @@ bool OnKeyboad(uint8_t) {
     if (context) {
         _api->exit_app();
         /*
+        left here for example, but not used in digital rain
         auto focus_widget = context->focus_manager().focus_widget();
 
         if (focus_widget)

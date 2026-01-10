@@ -233,6 +233,9 @@ standalone_application_api_t api = {
     .draw_pixels = &ext_draw_pixels,
     .draw_pixel = &ext_draw_pixel,
     .exit_app = &exit_app,
+    // version 4
+    .screen_height = &screen_height,
+    .screen_width = &screen_width,
 };
 
 StandaloneView::StandaloneView(NavigationView& nav, uint8_t* app_image)
@@ -282,7 +285,7 @@ bool StandaloneView::on_encoder(const EncoderEvent event) {
 
 bool StandaloneView::on_touch(const TouchEvent event) {
     if (get_application_information()->header_version > 1) {
-        get_application_information()->OnTouchEvent(event.point.x(), event.point.y(), (uint32_t)event.type);
+        return get_application_information()->OnTouchEvent(event.point.x(), event.point.y(), (uint32_t)event.type);
     }
     return false;
 }
