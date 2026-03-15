@@ -91,6 +91,18 @@ MEMORY
     ram_external_app_subcarrx  (rwx) : org = 0xADF20000, len = 32k
     ram_external_app_siggen  (rwx) : org = 0xADF30000, len = 32k
     ram_external_app_sdusb  (rwx) : org = 0xADF40000, len = 32k
+    ram_external_app_morse_radio  (rwx) : org = 0xADF50000, len = 32k
+    ram_external_app_waterfall_designer (rwx) : org = 0xADF60000, len = 32k
+    ram_external_app_morseradiotx  (rwx) : org = 0xADF70000, len = 32k
+    ram_external_app_keeloqtx (rwx) : org = 0xADF80000, len = 32k
+    ram_external_app_rtty_rx  (rwx) : org = 0xADF90000, len = 32k
+    ram_external_app_rtty_tx  (rwx) : org = 0xADFA0000, len = 32k
+    ram_external_app_tpmstx   (rwx) : org = 0xADFB0000, len = 32k
+    ram_external_app_pocsag_tx (rwx) : org = 0xADFC0000, len = 32k
+    ram_external_app_time_sink (rwx) : org = 0xADFD0000, len = 32k
+    ram_external_app_same_tx   (rwx) : org = 0xADFE0000, len = 32k
+    ram_external_app_kiss_tnc  (rwx) : org = 0xADFF0000, len = 32k
+    ram_external_app_epirb_tx  (rwx) : org = 0xAE000000, len = 32k
 
 }
 
@@ -209,6 +221,12 @@ SECTIONS
         KEEP(*(.external_app.app_tpmsrx.application_information));
         *(*ui*external_app*tpmsrx*);
     } > ram_external_app_tpmsrx
+
+   .external_app_tpmstx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_tpmstx.application_information));
+        *(*ui*external_app*tpmstx*);
+    } > ram_external_app_tpmstx
 
    .external_app_protoview : ALIGN(4) SUBALIGN(4)
     {
@@ -402,6 +420,12 @@ SECTIONS
         *(*ui*external_app*gfxeq*);
     } > ram_external_app_gfxeq
 
+    .external_app_waterfall_designer : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_waterfall_designer.application_information));
+        *(*ui*external_app*waterfall_designer*);
+    } > ram_external_app_waterfall_designer
+
     .external_app_detector_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_detector_rx.application_information));
@@ -506,5 +530,63 @@ SECTIONS
         *(*ui*external_app*sdusb*);
     } > ram_external_app_sdusb
    
+    .external_app_morse_radio : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_morse_radio.application_information));
+        *(*ui*external_app*morse_radio*);
+    } > ram_external_app_morse_radio
+
+    .external_app_morseradiotx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_morseradiotx.application_information));
+        *(*ui*external_app*morseradiotx*);
+    } > ram_external_app_morseradiotx
+
+    .external_app_keeloqtx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_keeloqtx.application_information));
+        *(*ui*external_app*keeloqtx*);
+    } > ram_external_app_keeloqtx
+    .external_app_rtty_rx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_rtty_rx.application_information));
+        *(*ui*external_app*rtty_rx*);
+    } > ram_external_app_rtty_rx
+
+    .external_app_rtty_tx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_rtty_tx.application_information));
+        *(*ui*external_app*rtty_tx*);
+    } > ram_external_app_rtty_tx
+
+    .external_app_pocsag_tx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_pocsag_tx.application_information));
+        *(*ui*external_app*pocsag_tx*);
+    } > ram_external_app_pocsag_tx
+
+    .external_app_time_sink : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_time_sink.application_information));
+        *(*ui*external_app*time_sink*);
+    } > ram_external_app_time_sink
+
+    .external_app_same_tx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_same_tx.application_information));
+        *(*ui*external_app*same_tx*);
+    } > ram_external_app_same_tx
+
+    .external_app_kiss_tnc : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_kiss_tnc.application_information));
+        *(*ui*external_app*kiss_tnc*);
+    } > ram_external_app_kiss_tnc
+
+    .external_app_epirb_tx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_epirb_tx.application_information));
+        *(*ui*external_app*epirb_tx*);
+    } > ram_external_app_epirb_tx
 }
 

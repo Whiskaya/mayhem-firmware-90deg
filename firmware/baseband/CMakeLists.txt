@@ -213,7 +213,11 @@ set(CPPWARN "-Wall -Wextra")
 # List all default C defines here, like -D_DEBUG=1
 # TODO: Switch -DCRT0_INIT_DATA depending on load from RAM or SPIFI?
 # NOTE: _RANDOM_TCC to kill a GCC 4.9.3 error with std::max argument types
-set(DDEFS "-DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"'")
+# Use BOARD variable if set, otherwise default to HACKRF_ONE
+if(NOT DEFINED BOARD)
+    set(BOARD "HACKRF_ONE")
+endif()
+set(DDEFS "-DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -D${BOARD} -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"'")
 
 # List all default ASM defines here, like -D_DEBUG=1
 set(DADEFS)
@@ -463,6 +467,7 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSPE wideband_spectrum)
 
+
 ### WFM Audio
 
 set(MODE_CPPSRC
@@ -529,6 +534,14 @@ set(MODE_CPPSRC
 	proc_epirb.cpp
 )
 DeclareTargets(PEPI epirb_rx)
+
+### EPIRB TX
+
+set(MODE_CPPSRC
+	proc_epirb_tx.cpp
+)
+DeclareTargets(PEPT epirb_tx)
+
 
 
 ### NRF RX
@@ -618,12 +631,12 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PADT adsbtx)
 
-### OOKStream
+### Binary Timed stream TX
 
 set(MODE_CPPSRC
-	proc_ook_stream_tx.cpp
+       proc_bint_stream_tx.cpp
 )
-DeclareTargets(POSK ookstream)
+DeclareTargets(POSK bintstream)
 
 
 ### Signal generator
@@ -663,6 +676,28 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSCD subcar)
 
+### Morse RX Decoder
+
+set(MODE_CPPSRC
+    proc_morse.cpp
+)
+DeclareTargets(PMRS morse)
+
+
+### RTTY RX
+
+set(MODE_CPPSRC
+    proc_rtty_rx.cpp
+)
+DeclareTargets(PRTR rtty_rx)
+
+
+### RTTY TX
+
+set(MODE_CPPSRC
+    proc_rtty_tx.cpp
+)
+DeclareTargets(PRTT rtty_tx)
 
 ### SD over USB
 
@@ -671,6 +706,21 @@ set(MODE_INCDIR
 	${HACKRF_PATH}/firmware/common
 	${HACKRF_PATH}/firmware/libopencm3/include
 )
+
+### Morse TX
+
+set(MODE_CPPSRC
+    proc_morsetx.cpp
+)
+DeclareTargets(PMRT morsetx)
+
+### Time Sink
+
+set(MODE_CPPSRC
+	proc_time_sink.cpp
+)
+DeclareTargets(PTSK time_sink)
+
 set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp
 
@@ -711,7 +761,10 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/timer.c
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/i2c.c
 )
+# sd_over_usb has type conflicts with PRALINE (HackRF Pro) - disable for now
+if(NOT BOARD STREQUAL "PRALINE")
 DeclareTargets(PUSB sd_over_usb)
+endif()
 
 
 ### HackRF "factory" firmware
